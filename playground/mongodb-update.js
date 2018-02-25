@@ -13,12 +13,15 @@ MongoClient.connect("mongodb://localhost:27017/", (err, client) => {
   var db = client.db("TodoApp");
 
   db
-    .collection("Todos")
+    .collection("Users")
     .findOneAndUpdate({
-      _id: new ObjectID("5a910d711a60161180dc72cd")
+      _id: new ObjectID("5a8fe324e610545380284b4f")
     }, {
       $set: {
-        completed: true
+        name: 'Joko'
+      },
+      $inc: {
+        "age": 1
       }
     }, {
       returnOriginal: false
