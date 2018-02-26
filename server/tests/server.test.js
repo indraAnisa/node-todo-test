@@ -41,7 +41,9 @@ describe("POST  /todos", () => {
           return done(err);
         }
 
-        Todo.find({ text })
+        Todo.find({
+          text
+        })
           .then(todos => {
             expect(todos.length).toBe(1);
             expect(todos[0].text).toBe(text);
@@ -88,28 +90,27 @@ describe("GET /todos", () => {
 
 describe("GET /todos/:id", () => {
   it("should return todo doc", done => {
-      request(app)
-        .get(`/todos/${todos[0]._id.toHexString()}`)
-        .expect(200)
-        .expect(res =>{
-            expect(res.body.todo.text).toBe(todos[0].text)
-        })
-        .end(done);
+    request(app)
+      .get(`/todos/${todos[0]._id.toHexString()}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo.text).toBe(todos[0].text);
+      })
+      .end(done);
   });
 
-  it('should return 404 if todo not found', done =>{
+  it("should return 404 if todo not found", done => {
+    var id = new ObjectID();
+    request(app)
+      .get(`/todos/${id.toHexString()}`)
+      .expect(404)
+      .end(done);
+  });
 
-      var id = new ObjectID(); 
-      request(app)
-        .get(`/todos/${id.toHexString()}`)
-        .expect(404)
-        .end(done);
-  })
-
-  it('should return 404 for non object ids', done=>{
-      request(app)
-        .get('/todos/123')
-        .expect(404)
-        . end(done);
-  })
+  it("should return 404 for non object ids", done => {
+    request(app)
+      .get("/todos/123")
+      .expect(404)
+      .end(done);
+  });
 });
