@@ -49,7 +49,9 @@ app.get("/todos/:id", (req, res) => {
   Todo.findById(id)
     .then(todo => {
       if (todo) {
-        res.status(200).send({todo});
+        res.status(200).send({
+          todo
+        });
       } else {
         res.status(404).send();
       }
@@ -61,22 +63,23 @@ app.get("/todos/:id", (req, res) => {
 
 app.delete("/todos/:id", (req, res) => {
   var id = req.params.id;
+
   //validate id using isValid
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Todo.findOneAndRemove(id)
-    .then(todo => {
-      if (todo) {
-        res.status(200).send({todo});
-      } else {
-        res.status(404).send();
-      }
-    })
-    .catch(e => {
-      res.status(400).send();
-    });
+  Todo.findByIdAndRemove(id, (err, todo) => {
+    if (err) {
+      return res.status(404).send();
+    }
+
+    if (todo) {
+      res.status(200).send({ todo });
+    } else {
+      res.status(404).send();
+    }
+  });
 });
 
 app.listen(port, () => {
