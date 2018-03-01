@@ -17,6 +17,8 @@ const todos = [
 ];
 
 beforeEach(done => {
+
+ 
   Todo.remove({})
     .then(() => {
       return Todo.insertMany(todos);
@@ -135,5 +137,20 @@ describe("DELETE /todos/id", () => {
           })
           .catch(e => done(e));
       });
+  });
+
+  it("should return 404 if ID not found", done => {
+    var id = new ObjectID();
+    request(app)
+      .delete(`/todos/${id.toHexString()}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it("should return 404 for non object ids", done => {
+    request(app)
+      .delete("/todos/123")
+      .expect(404)
+      .end(done);
   });
 });
