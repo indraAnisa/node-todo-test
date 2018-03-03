@@ -1,17 +1,37 @@
-require('./config/config')
+require("./config/config");
 var express = require("express");
 var bodyParser = require("body-parser");
 var { ObjectID } = require("mongodb");
 var _ = require("lodash");
 
 var { mongoose } = require("./db/mongoose");
-var { Users } = require("./models/user");
+var { User } = require("./models/user");
 var { Todo } = require("./models/todo");
 
 var app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
+
+app.post("/users", (req, res) => {
+  var body = _.pick(req.body, ["email", "password"]);
+  var user = new User(body);
+  
+  user
+    .save()
+    .then(() => {
+      
+      return user.generateAuthToken();
+    })
+    .then(token => {
+      console.log(user);
+      res.header("x-auth", token).send(user);
+      console.log(user);
+    })
+    .catch(e => {
+      res.status(404).send(e);
+    });
+});
 
 app.post("/todos", (req, res) => {
   var todo = new Todo({
@@ -77,7 +97,9 @@ app.delete("/todos/:id", (req, res) => {
     }
 
     if (todo) {
-      res.status(200).send({ todo });
+      res.status(200).send({
+        todo
+      });
     } else {
       res.status(404).send();
     }
@@ -105,14 +127,18 @@ app.patch("/todos/:id", (req, res) => {
     {
       $set: body
     },
-    { new: true }
+    {
+      new: true
+    }
   )
     .then(todo => {
       if (!todo) {
         return res.status(404).send();
       }
 
-      res.send({todo});
+      res.send({
+        todo
+      });
     })
     .catch(e => {
       res.status(404).send();
