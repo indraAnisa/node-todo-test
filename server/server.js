@@ -7,6 +7,7 @@ var _ = require("lodash");
 var { mongoose } = require("./db/mongoose");
 var { User } = require("./models/user");
 var { Todo } = require("./models/todo");
+var {authenticate} = require('./middleware/authenticate')
 
 var app = express();
 const port = process.env.PORT;
@@ -16,17 +17,16 @@ app.use(bodyParser.json());
 app.post("/users", (req, res) => {
   var body = _.pick(req.body, ["email", "password"]);
   var user = new User(body);
-  
+
   user
     .save()
     .then(() => {
-      
       return user.generateAuthToken();
     })
     .then(token => {
-      console.log(user);
+     
       res.header("x-auth", token).send(user);
-      console.log(user);
+      
     })
     .catch(e => {
       res.status(404).send(e);
@@ -123,14 +123,12 @@ app.patch("/todos/:id", (req, res) => {
   }
 
   Todo.findByIdAndUpdate(
-    id,
-    {
-      $set: body
-    },
-    {
-      new: true
-    }
-  )
+      id, {
+        $set: body
+      }, {
+        new: true
+      }
+    )
     .then(todo => {
       if (!todo) {
         return res.status(404).send();
@@ -143,6 +141,12 @@ app.patch("/todos/:id", (req, res) => {
     .catch(e => {
       res.status(404).send();
     });
+});
+
+
+
+app.get("/users/me", authenticate, (req, res) => {
+  res.send(req.user);
 });
 
 app.listen(port, () => {
