@@ -3,11 +3,12 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var { ObjectID } = require("mongodb");
 var _ = require("lodash");
+const bcyrpt = require("bcryptjs");
 
 var { mongoose } = require("./db/mongoose");
 var { User } = require("./models/user");
 var { Todo } = require("./models/todo");
-var {authenticate} = require('./middleware/authenticate')
+var { authenticate } = require("./middleware/authenticate");
 
 var app = express();
 const port = process.env.PORT;
@@ -24,9 +25,7 @@ app.post("/users", (req, res) => {
       return user.generateAuthToken();
     })
     .then(token => {
-     
       res.header("x-auth", token).send(user);
-      
     })
     .catch(e => {
       res.status(404).send(e);
@@ -123,12 +122,14 @@ app.patch("/todos/:id", (req, res) => {
   }
 
   Todo.findByIdAndUpdate(
-      id, {
-        $set: body
-      }, {
-        new: true
-      }
-    )
+    id,
+    {
+      $set: body
+    },
+    {
+      new: true
+    }
+  )
     .then(todo => {
       if (!todo) {
         return res.status(404).send();
@@ -143,10 +144,22 @@ app.patch("/todos/:id", (req, res) => {
     });
 });
 
-
-
 app.get("/users/me", authenticate, (req, res) => {
   res.send(req.user);
+});
+
+app.post("/users/login", (req, res) => {
+  var email = req.body.email;
+  var password = req.body.password;
+
+  
+  User.findByCredentials(email,password).then(user=>{
+    user.generateAuthToken().then(token=>{
+      res.header("x-auth", token).send(user);
+    })
+  }).catch(e =>{
+    res.status(400).send();
+  })
 });
 
 app.listen(port, () => {

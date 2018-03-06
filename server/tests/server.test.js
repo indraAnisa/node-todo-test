@@ -4,7 +4,7 @@ const { ObjectID } = require("mongodb");
 
 const { app } = require("./../server");
 const { Todo } = require("./../models/todo");
-const {User} = require("./../models/user");
+const { User } = require("./../models/user");
 const { todos, populateTodos, users, populateUsers } = require("./seed/seed");
 
 beforeEach(populateUsers);
@@ -244,29 +244,43 @@ describe("POST /users", () => {
   });
 
   it("should return validation error if request invalid", done => {
-    var email = 'joko@www'
-    var password = 'abc32'
+    var email = "joko@www";
+    var password = "abc32";
 
     request(app)
-      .post('/users')
+      .post("/users")
       .expect(404)
-      .expect((res)=>{
+      .expect(res => {
         expect(res.body.errors).toExist();
       })
-      .end(done)
-
+      .end(done);
   });
 
   it("should not create user if email in use", done => {
-    var email = users[0].email; 
+    var email = users[0].email;
     var password = "123mnb!";
 
     request(app)
-      .post('/users')
-      .send({email,password})
+      .post("/users")
+      .send({ email, password })
       .expect(404)
-      .expect((res)=>{
-        expect(res.body.code).toEqual(11000)
+      .expect(res => {
+        expect(res.body.code).toEqual(11000);
+      })
+      .end(done);
+  });
+});
+
+describe("POST /users/login", () => {
+  it("should return user if success login", done => {
+    var email = users[0].email;
+    var password = users[0].password;
+    request(app)
+      .post("/users/login")
+      .send({ email, password })
+      .expect(200)
+      .expect(res => {
+        expect(res.body.email).toBe(users[0].email);
       })
       .end(done);
   });
