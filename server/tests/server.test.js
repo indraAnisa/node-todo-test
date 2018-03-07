@@ -273,15 +273,57 @@ describe("POST /users", () => {
 
 describe("POST /users/login", () => {
   it("should return user if success login", done => {
-    var email = users[0].email;
-    var password = users[0].password;
+    var email = users[1].email;
+    var password = users[1].password;
     request(app)
       .post("/users/login")
       .send({ email, password })
       .expect(200)
       .expect(res => {
-        expect(res.body.email).toBe(users[0].email);
+        expect(res.headers["x-auth"]).toExist();
       })
-      .end(done);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        User.findById(users[1]._id)
+          .then(user => {
+            expect(user.tokens[0]).toInclude({
+              access: "auth",
+              token: res.headers["x-auth"]
+            });
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+      });
+  });
+
+  it("should reject invalid login", done => {
+    var email = users[1].email;
+    var password = users[1].password + 'i';
+    request(app)
+      .post("/users/login")
+      .send({ email, password })
+      .expect(400)
+      .expect(res => {
+        expect(res.headers["x-auth"]).toNotExist();
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        User.findById(users[1]._id)
+          .then(user => {
+            expect(user.tokens.length).toBe(0);
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+      });
   });
 });
