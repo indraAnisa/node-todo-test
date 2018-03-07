@@ -330,6 +330,7 @@ describe("POST /users/login", () => {
 
 describe('DELETE /users/me/login',()=>{
   it('should delete user token', done=>{
-    
+    request(app)
+      .expect(200)
   })
 })
